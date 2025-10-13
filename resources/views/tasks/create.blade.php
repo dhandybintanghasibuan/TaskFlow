@@ -25,11 +25,11 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                            <div>
-                                <x-input-label for="deadline" :value="__('Deadline')" />
-                                <x-text-input id="deadline" class="block mt-1 w-full" type="date" name="deadline" :value="old('deadline')" required />
-                                <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
-                            </div>
+                            <div class="mb-4">
+    <x-input-label for="deadline" :value="__('Deadline')" />
+    <input id="deadline" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" type="datetime-local" name="deadline" value="{{ old('deadline') }}" required />
+    <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
+</div>
                             
                             <div>
                                 <x-input-label for="prioritas" :value="__('Prioritas')" />

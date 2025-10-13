@@ -47,12 +47,11 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
-                            <div>
-                                <label for="deadline" class="block text-sm font-medium text-gray-700">Deadline</label>
-                                <input id="deadline" type="date" name="deadline" value="{{ old('deadline', $task->deadline) }}" required
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
-                            </div>
+                            <div class="mb-4">
+    <x-input-label for="deadline" :value="__('Deadline')" />
+    <input id="deadline" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" type="datetime-local" name="deadline" value="{{ old('deadline', \Carbon\Carbon::parse($task->deadline)->format('Y-m-d\TH:i')) }}" required />
+    <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
+</div>
                             <div>
                                 <label for="prioritas" class="block text-sm font-medium text-gray-700">Prioritas</label>
                                 <select name="prioritas" id="prioritas" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">

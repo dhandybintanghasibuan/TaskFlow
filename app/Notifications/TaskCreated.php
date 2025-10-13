@@ -2,57 +2,43 @@
 
 namespace App\Notifications;
 
-use App\Models\Task; // Tambahkan ini
+use App\Models\Task;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Telegram\TelegramChannel;
+use NotificationChannels\Telegram\TelegramMessage;
 
-class TaskCreated extends Notification
+class TaskCreated extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public Task $task;
 
-    /**
-     * Buat instance notifikasi baru.
-     *
-     * @return void
-     */
     public function __construct(Task $task)
     {
         $this->task = $task;
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
+     * Tentukan channel notifikasi (hanya telegram).
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return [TelegramChannel::class];
     }
 
     /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * Format pesan untuk notifikasi Telegram.
      */
-    public function toMail($notifiable)
-    {
-        $url = route('dashboard');
+    public function toTelegram($notifiable)
+{
+    $deadline = \Carbon\Carbon::parse($this->task->deadline)->format('d F Y, H:i');
+    // $url = route('tasks.show', $this->task->id); // Baris ini tidak diperlukan lagi
 
-        return (new MailMessage)
-                    ->subject('TaskFlow: Tugas Baru Berhasil Dibuat!')
-                    ->greeting('Halo, ' . $notifiable->name . '!')
-                    ->line('Tugas baru Anda telah berhasil ditambahkan ke dalam daftar:')
-                    ->line('**Nama Tugas:** ' . $this->task->nama_tugas)
-                    ->line('**Mata Kuliah:** ' . $this->task->mata_kuliah)
-                    ->line('**Deadline:** ' . \Carbon\Carbon::parse($this->task->deadline)->format('d F Y'))
-                    ->action('Lihat Semua Tugas', $url)
-                    ->salutation('Terima kasih telah menggunakan TaskFlow.');
-    }
+    return TelegramMessage::create()
+        ->to($notifiable->telegram_chat_id)
+        ->content("🔔 *Tugas Baru Ditambahkan!*\n\n*Nama Tugas:*\n" . $this->task->nama_tugas . "\n\n*Mata Kuliah:*\n" . $this->task->mata_kuliah . "\n\n*Deadline:*\n" . $deadline);
+        // ->button('Lihat Detail Tugas', $url); // <-- HAPUS ATAU BERI KOMENTAR PADA BARIS INI
+}
 }

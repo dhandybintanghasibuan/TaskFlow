@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __("Perbarui informasi profil dan alamat email akun Anda.") }}
+            {{ __("Perbarui informasi profil akun Anda dan alamat email.") }}
         </p>
     </header>
 
@@ -40,12 +40,22 @@
 
                     @if (session('status') === 'verification-link-sent')
                         <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('Link verifikasi baru telah dikirim ke alamat email Anda.') }}
+                            {{ __('Tautan verifikasi baru telah dikirimkan ke alamat email Anda.') }}
                         </p>
                     @endif
                 </div>
             @endif
         </div>
+
+        {{-- INI ADALAH BAGIAN UNTUK TELEGRAM CHAT ID --}}
+        <div class="mt-4">
+            <x-input-label for="telegram_chat_id" :value="__('Telegram Chat ID')" />
+            <x-text-input id="telegram_chat_id" name="telegram_chat_id" type="text" class="mt-1 block w-full" :value="old('telegram_chat_id', $user->telegram_chat_id)" autocomplete="telegram_chat_id" />
+            <x-input-error class="mt-2" :messages="$errors->get('telegram_chat_id')" />
+            <p class="mt-1 text-sm text-gray-600">Dapatkan ID Anda dari bot <a href="https://t.me/userinfobot" target="_blank" class="text-indigo-600 hover:underline">@userinfobot</a> di Telegram.</p>
+        </div>
+        {{-- AKHIR BAGIAN TELEGRAM CHAT ID --}}
+
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Simpan') }}</x-primary-button>
@@ -57,7 +67,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm text-gray-600"
-                >{{ __('Tersimpan.') }}</p>
+                >{{ __('Disimpan.') }}</p>
             @endif
         </div>
     </form>

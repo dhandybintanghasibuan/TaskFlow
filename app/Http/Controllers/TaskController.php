@@ -3,33 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
-use App\Notifications\TaskCreated; // 1. Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Notifications\TaskCreated;
 
 class TaskController extends Controller
 {
     /**
      * Menampilkan dashboard dengan statistik dan daftar tugas.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         
-        // Mengambil semua tugas milik user
-        $tasks = $user->tasks()->orderBy('deadline', 'asc')->get();
+        $tasksQuery = $user->tasks();
 
-        // Menghitung statistik
-        $totalTugas = $tasks->count();
-        $tugasSelesai = $tasks->where('status', 'Selesai')->count();
+        if ($request->has('status') && in_array($request->status, ['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])) {
+            $tasksQuery->where('status', $request->status);
+        }
+
+        if ($request->get('sort') == 'priority_desc') {
+            $tasksQuery->orderByRaw("FIELD(prioritas, 'Tinggi', 'Sedang', 'Rendah') ASC");
+        } else {
+            $tasksQuery->orderBy('deadline', 'asc');
+        }
+        
+        $tasks = $tasksQuery->get();
+
+        $allTasks = $user->tasks()->get();
+        $totalTugas = $allTasks->count();
+        $tugasSelesai = $allTasks->where('status', 'Selesai')->count();
         $tugasBelumDikerjakan = $totalTugas - $tugasSelesai;
-        $tugasMendekatiDeadline = $tasks->where('status', '!=', 'Selesai')
+        $tugasMendekatiDeadline = $allTasks->where('status', '!=', 'Selesai')
                                        ->where('deadline', '<=', Carbon::now()->addDays(3))
                                        ->count();
 
-        // Mengirim semua data ke view
         return view('dashboard', compact(
             'tasks', 
             'totalTugas', 
@@ -60,22 +70,23 @@ class TaskController extends Controller
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
         ]);
 
-        // 2. Simpan data dan dapatkan instance tugas yang baru dibuat
         $task = Auth::user()->tasks()->create($request->all());
-
-        // 3. Kirim notifikasi email ke user yang sedang login
         Auth::user()->notify(new TaskCreated($task));
 
-        // 4. Redirect dengan pesan sukses yang baru
-        return redirect()->route('dashboard')->with('success', 'Tugas berhasil ditambahkan & notifikasi telah dikirim!');
+        return redirect()->route('dashboard')->with('success', 'Tugas berhasil ditambahkan!');
     }
 
     /**
-     * Menampilkan detail satu tugas.
+     * Menampilkan halaman detail satu tugas.
      */
     public function show(Task $task)
     {
-        return redirect()->route('tasks.edit', $task);
+        // Pastikan user hanya bisa melihat tugas miliknya
+        if (Auth::id() !== $task->user_id) {
+            abort(403);
+        }
+
+        return view('tasks.show', compact('task'));
     }
 
     /**
@@ -102,7 +113,7 @@ class TaskController extends Controller
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
             'mata_kuliah' => 'required|string|max:255',
-            'deadline' => 'required|date',
+            'deadline' => 'required|date_format:Y-m-d\TH:i',
             'deskripsi' => 'nullable|string',
             'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
@@ -143,5 +154,43 @@ class TaskController extends Controller
         $task->update(['status' => $request->status]);
 
         return redirect()->route('dashboard')->with('success', 'Status tugas berhasil diperbarui!');
+    }
+
+    /**
+     * Mengambil data tugas untuk ditampilkan di kalender.
+     */
+    public function tasksForCalendar(Request $request)
+    {
+        $tasks = Auth::user()->tasks()->get();
+        $events = [];
+
+        foreach ($tasks as $task) {
+            $backgroundColor = '';
+            switch ($task->prioritas) {
+                case 'Tinggi': $backgroundColor = '#EF4444'; break;
+                case 'Sedang': $backgroundColor = '#F59E0B'; break;
+                case 'Rendah': $backgroundColor = '#10B981'; break;
+            }
+
+            $endDate = Carbon::parse($task->deadline)->addDay()->format('Y-m-d');
+
+            $events[] = [
+                'id' => $task->id,
+                'title' => $task->nama_tugas,
+                'start' => $task->deadline,
+                'end' => $endDate,
+                'allDay' => true,
+                'backgroundColor' => $backgroundColor,
+                'borderColor' => $backgroundColor,
+                'url' => route('tasks.show', $task->id), // Diarahkan ke show
+                'extendedProps' => [
+                    'mata_kuliah' => $task->mata_kuliah,
+                    'prioritas' => $task->prioritas,
+                    'status' => $task->status,
+                ]
+            ];
+        }
+
+        return response()->json($events);
     }
 }

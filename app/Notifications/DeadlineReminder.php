@@ -4,54 +4,46 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Collection; // Tambahkan ini
+use Illuminate\Support\Collection;
+use NotificationChannels\Telegram\TelegramChannel;
+use NotificationChannels\Telegram\TelegramMessage;
 
-class DeadlineReminder extends Notification
+class DeadlineReminder extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    // Properti untuk menyimpan daftar tugas
     public Collection $tasks;
 
-    /**
-     * Buat instance notifikasi baru.
-     *
-     * @param \Illuminate\Support\Collection $tasks
-     * @return void
-     */
     public function __construct(Collection $tasks)
     {
         $this->tasks = $tasks;
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
+     * Tentukan channel notifikasi (hanya telegram).
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return [TelegramChannel::class];
     }
 
     /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * Format pesan untuk notifikasi Telegram.
      */
-    public function toMail($notifiable)
-    {
-        $url = url('/dashboard');
+    public function toTelegram($notifiable)
+{
+    // $url = route('dashboard'); // Baris ini tidak diperlukan lagi
+    $content = "⏰ *Pengingat Deadline Tugas!*\n\nAnda memiliki " . $this->tasks->count() . " tugas yang akan segera berakhir:\n";
 
-        return (new MailMessage)
-                    ->subject('TaskFlow: Pengingat Deadline Tugas')
-                    ->greeting('Halo, ' . $notifiable->name . '!')
-                    ->line('Ini adalah pengingat bahwa Anda memiliki beberapa tugas yang mendekati deadline:')
-                    ->view('notifications.deadline_email', ['tasks' => $this->tasks, 'url' => $url]) // Menggunakan view kustom
-                    ->salutation('Semangat mengerjakan!');
+    foreach ($this->tasks as $task) {
+        $deadline = \Carbon\Carbon::parse($task->deadline)->format('d M Y, H:i');
+        $content .= "\n- *" . $task->nama_tugas . "* (Deadline: " . $deadline . ")";
     }
+
+    return TelegramMessage::create()
+        ->to($notifiable->telegram_chat_id)
+        ->content($content);
+        // ->button('Buka Dashboard', $url); // <-- HAPUS ATAU BERI KOMENTAR PADA BARIS INI
+}
 }

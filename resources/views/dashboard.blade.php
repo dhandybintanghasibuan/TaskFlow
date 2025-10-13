@@ -85,7 +85,7 @@
                         <div class="p-5">
                             <div class="flex justify-between items-start mb-3">
                                 <h4 class="text-lg font-bold text-gray-800 hover:text-indigo-600 transition">
-                                    <a href="{{ route('tasks.edit', $task->id) }}">{{ $task->nama_tugas }}</a>
+                                <a href="{{ route('tasks.show', $task->id) }}">{{ $task->nama_tugas }}</a>
                                 </h4>
                                 {{-- Form untuk Update Status --}}
                                 <form action="{{ route('tasks.updateStatus', $task->id) }}" method="POST">
@@ -103,7 +103,7 @@
                             {{-- Detail Deadline dan Prioritas --}}
                             <div class="flex items-center text-sm text-gray-500">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>{{ \Carbon\Carbon::parse($task->deadline)->format('d F Y') }}</span>
+                                <span>{{ \Carbon\Carbon::parse($task->deadline)->format('d F Y, H:i') }}</span>
                                 <span class="mx-2 text-gray-300">|</span>
                                 <div class="w-3 h-3 rounded-full 
                                     @if($task->prioritas == 'Tinggi') bg-red-500 @endif
@@ -115,14 +115,14 @@
                         </div>
 
                         {{-- Tombol Aksi di Footer Kartu --}}
-                        <div class="bg-gray-50 px-5 py-3 flex justify-end space-x-3">
-                            <a href="{{ route('tasks.edit', $task->id) }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
-                            <form action="{{ route('tasks.destroy', $task->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-sm text-red-600 hover:text-red-900 font-semibold" onclick="return confirm('Anda yakin ingin menghapus tugas ini?')">Hapus</button>
-                            </form>
-                        </div>
+                        <div class="bg-gray-50 px-5 py-3 flex justify-end items-center space-x-3"> {{-- Tambah items-center di sini --}}
+    <a href="{{ route('tasks.edit', $task->id) }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
+    <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="inline-flex"> {{-- Tambah inline-flex di form --}}
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="text-sm text-red-600 hover:text-red-900 font-semibold" onclick="return confirm('Anda yakin ingin menghapus tugas ini?')">Hapus</button>
+    </form>
+</div>
                     </div>
                 @empty
                     {{-- ... Tampilan Tugas Kosong ... --}}

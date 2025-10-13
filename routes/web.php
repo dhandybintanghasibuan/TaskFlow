@@ -32,6 +32,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class);
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
 
+    // --- Rute Baru untuk Kalender ---
+    Route::get('/calendar', function () {
+        return view('calendar.index');
+    })->name('calendar.index');
+
+    Route::get('/api/tasks-for-calendar', [TaskController::class, 'tasksForCalendar'])->name('api.tasksForCalendar');
+    // ---------------------------------
 });
 
 require __DIR__.'/auth.php';
