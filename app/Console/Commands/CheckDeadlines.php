@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Task;
 use App\Notifications\DeadlineReminder;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log; // Untuk logging
+use Illuminate\Support\Facades\Log;
 
 class CheckDeadlines extends Command
 {
@@ -23,43 +23,44 @@ class CheckDeadlines extends Command
      *
      * @var string
      */
-    protected $description = 'Periksa tugas yang mendekati deadline dan kirim notifikasi email';
+    protected $description = 'Periksa tugas yang mendekati deadline (H-7, H-3, H-1) dan kirim notifikasi.';
 
     /**
      * Execute the console command.
      */
     public function handle()
-    {
-        $this->info('Mulai memeriksa deadline tugas...');
-        Log::info('Cron Job CheckDeadlines: Mulai berjalan.');
+{
+    Log::info('Cron Job CheckDeadlines: Mulai berjalan.');
 
-        // 1. Cari semua tugas yang belum selesai dan akan deadline dalam 3 hari ke depan.
-        $tasksToRemind = Task::where('status', '!=', 'Selesai')
-            ->whereBetween('deadline', [Carbon::now(), Carbon::now()->addDays(3)])
+    $users = User::all();
+
+    foreach ($users as $user) {
+        if (!$user->telegram_chat_id || empty($user->notification_preferences)) {
+            continue; // Lewati user yang tidak ingin notifikasi
+        }
+
+        // Ambil hari pengingat dari preferensi user
+        $reminderDays = json_decode($user->notification_preferences);
+
+        // Buat daftar tanggal target berdasarkan preferensi user
+        $targetDates = [];
+        foreach ($reminderDays as $day) {
+            $targetDates[] = Carbon::today()->addDays($day)->toDateString();
+        }
+
+        // Cari tugas user yang deadline-nya cocok
+        $tasksToRemind = $user->tasks()
+            ->where('status', '!=', 'Selesai')
+            ->whereIn(\DB::raw('DATE(deadline)'), $targetDates)
             ->get();
 
-        if ($tasksToRemind->isEmpty()) {
-            $this->info('Tidak ada tugas yang perlu diingatkan hari ini.');
-            Log::info('Cron Job CheckDeadlines: Tidak ada tugas yang perlu diingatkan.');
-            return 0; // Selesai
+        if ($tasksToRemind->isNotEmpty()) {
+            $user->notify(new DeadlineReminder($tasksToRemind));
+            Log::info("Mengirim notifikasi ke user {$user->name} untuk {$tasksToRemind->count()} tugas.");
         }
-
-        // 2. Kelompokkan tugas berdasarkan user_id
-        $tasksByUser = $tasksToRemind->groupBy('user_id');
-
-        // 3. Loop melalui setiap user dan kirim notifikasi
-        foreach ($tasksByUser as $userId => $tasks) {
-            $user = User::find($userId);
-            if ($user) {
-                // Kirim notifikasi ke user dengan daftar tugasnya
-                $user->notify(new DeadlineReminder($tasks));
-                $this->info("Mengirim notifikasi ke: {$user->email} untuk {$tasks->count()} tugas.");
-                Log::info("Cron Job CheckDeadlines: Mengirim notifikasi ke {$user->email}.");
-            }
-        }
-
-        $this->info('Selesai memeriksa deadline tugas.');
-        Log::info('Cron Job CheckDeadlines: Selesai.');
-        return 0;
     }
+
+    Log::info('Cron Job CheckDeadlines: Selesai.');
+    return 0;
+}
 }

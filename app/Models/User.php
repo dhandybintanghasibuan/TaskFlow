@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany; // Tambahkan ini
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -23,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'telegram_chat_id',
+        'notification_preferences',
     ];
 
     /**
@@ -42,14 +42,22 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'notification_preferences' => 'array', 
     ];
 
     /**
      * Mendefinisikan bahwa seorang User memiliki banyak Task.
-     * --- BAGIAN TAMBAHAN ---
      */
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+    
+    /**
+     * Mendefinisikan rute notifikasi untuk channel Telegram.
+     */
+    public function routeNotificationForTelegram()
+    {
+        return $this->telegram_chat_id;
     }
 }

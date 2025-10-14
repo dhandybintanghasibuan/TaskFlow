@@ -26,10 +26,21 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
 {
-    $request->user()->fill($request->validated());
+    $validatedData = $request->validated();
+    
+    // Convert array notification_preferences to JSON string for the model
+    if (isset($validatedData['notification_preferences'])) {
+        $validatedData['notification_preferences'] = json_encode($validatedData['notification_preferences']);
+    } else {
+        $validatedData['notification_preferences'] = json_encode([]);
+    }
+
+    $request->user()->fill($validatedData);
+    
     // ... (kode if email changed) ...
+    
     $request->user()->save();
-    return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    return Redirect::route('profile.settings')->with('status', 'profile-updated'); // Ubah rute redirect
 }
 
     /**
@@ -51,5 +62,12 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function settings(Request $request): View
+    {
+        return view('profile.settings', [
+            'user' => $request->user(),
+        ]);
     }
 }

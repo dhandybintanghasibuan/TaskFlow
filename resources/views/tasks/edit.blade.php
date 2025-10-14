@@ -32,7 +32,9 @@
 
                     <form method="POST" action="{{ route('tasks.update', $task->id) }}">
                         @csrf
-                        @method('PUT') <div class="mb-4">
+                        @method('PUT')
+
+                        <div class="mb-4">
                             <label for="nama_tugas" class="block text-sm font-medium text-gray-700">Nama Tugas</label>
                             <input id="nama_tugas" type="text" name="nama_tugas" value="{{ old('nama_tugas', $task->nama_tugas) }}" required 
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -47,11 +49,13 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
-                            <div class="mb-4">
-    <x-input-label for="deadline" :value="__('Deadline')" />
-    <input id="deadline" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" type="datetime-local" name="deadline" value="{{ old('deadline', \Carbon\Carbon::parse($task->deadline)->format('Y-m-d\TH:i')) }}" required />
-    <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
-</div>
+                            <div>
+                                <label for="deadline-picker" class="block text-sm font-medium text-gray-700">Deadline</label>
+                                {{-- Ganti type menjadi "text" dan sesuaikan value --}}
+                                <input id="deadline-picker" type="text" name="deadline" value="{{ old('deadline', $task->deadline) }}" required 
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
+                            </div>
                             <div>
                                 <label for="prioritas" class="block text-sm font-medium text-gray-700">Prioritas</label>
                                 <select name="prioritas" id="prioritas" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -65,7 +69,7 @@
                                 <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="Belum Dikerjakan" @selected(old('status', $task->status) == 'Belum Dikerjakan')>Belum Dikerjakan</option>
                                     <option value="Sedang Dikerjakan" @selected(old('status', $task->status) == 'Sedang Dikerjakan')>Sedang Dikerjakan</option>
-                                    <option value="Selesai" @selected(old('status', 'Selesai') == 'Selesai')>Selesai</option>
+                                    <option value="Selesai" @selected(old('status', $task->status) == 'Selesai')>Selesai</option>
                                 </select>
                             </div>
                         </div>
@@ -90,4 +94,16 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        // Inisialisasi Flatpickr pada input dengan ID 'deadline-picker'
+        flatpickr("#deadline-picker", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            minDate: "today",
+        });
+    </script>
+    @endpush
 </x-app-layout>

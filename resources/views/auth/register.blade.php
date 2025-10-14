@@ -71,6 +71,16 @@
                 </div>
 
                 <div>
+                    <label for="telegram_chat_id" class="block text-sm font-medium text-gray-700">Telegram Chat ID</label>
+                    <div class="mt-1">
+                        <input id="telegram_chat_id" type="text" name="telegram_chat_id" :value="old('telegram_chat_id')" autocomplete="telegram_chat_id"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Dapatkan ID Anda dari bot <a href="https://t.me/userinfobot" target="_blank" class="text-indigo-600 hover:underline">@userinfobot</a> di Telegram.</p>
+                    <x-input-error :messages="$errors->get('telegram_chat_id')" class="mt-2" />
+                </div>
+                
+                <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                     <div class="mt-1">
                         <input id="password" type="password" name="password" required autocomplete="new-password"

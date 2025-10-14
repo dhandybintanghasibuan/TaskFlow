@@ -13,6 +13,7 @@
                 <p class="mt-1 text-gray-500">Berikut adalah ringkasan dan daftar tugasmu hari ini.</p>
             </div>
 
+            {{-- Statistik Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {{-- Card Total Tugas --}}
                 <div class="flex items-start p-5 bg-white rounded-xl shadow-md transition hover:shadow-lg hover:-translate-y-1">
@@ -27,7 +28,7 @@
                 {{-- Card Tugas Selesai --}}
                 <div class="flex items-start p-5 bg-white rounded-xl shadow-md transition hover:shadow-lg hover:-translate-y-1">
                     <div class="flex-shrink-0 p-3 text-green-500 bg-green-100 rounded-lg">
-                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Tugas Selesai</p>
@@ -56,15 +57,40 @@
                 </div>
             </div>
 
+            {{-- Panel Filter & Aksi --}}
             <div class="bg-white rounded-xl shadow-md p-4 mb-8">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div class="w-full sm:w-auto">
-                        <h3 class="text-lg font-semibold text-gray-800">Daftar Tugasmu</h3>
-                        <p class="text-sm text-gray-500">Lihat dan kelola semua tugasmu di sini.</p>
-                    </div>
-                    <div class="w-full sm:w-auto flex justify-end">
+                    
+                    <form action="{{ route('dashboard') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-4 w-full">
+                        <div class="w-full sm:w-auto">
+                            <label for="status_filter" class="sr-only">Filter Status</label>
+                            <select name="status" id="status_filter" class="block w-full border-gray-300 rounded-md shadow-sm text-sm" onchange="this.form.submit()">
+                                <option value="">Semua Status</option>
+                                <option value="Belum Dikerjakan" @selected(request('status') == 'Belum Dikerjakan')>Belum Dikerjakan</option>
+                                <option value="Sedang Dikerjakan" @selected(request('status') == 'Sedang Dikerjakan')>Sedang Dikerjakan</option>
+                                <option value="Selesai" @selected(request('status') == 'Selesai')>Selesai</option>
+                            </select>
+                        </div>
+                        
+                        <div class="w-full sm:w-auto">
+                            <label for="prioritas_filter" class="sr-only">Filter Prioritas</label>
+                            <select name="prioritas" id="prioritas_filter" class="block w-full border-gray-300 rounded-md shadow-sm text-sm" onchange="this.form.submit()">
+                                <option value="">Semua Prioritas</option>
+                                <option value="Tinggi" @selected(request('prioritas') == 'Tinggi')>Tinggi</option>
+                                <option value="Sedang" @selected(request('prioritas') == 'Sedang')>Sedang</option>
+                                <option value="Rendah" @selected(request('prioritas') == 'Rendah')>Rendah</option>
+                            </select>
+                        </div>
+
+                        {{-- Input tersembunyi untuk mempertahankan parameter lain (jika ada) --}}
+                        @foreach(request()->except(['status', 'prioritas', 'page']) as $key => $value)
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endforeach
+                    </form>
+
+                    <div class="w-full sm:w-auto flex justify-end items-center mt-4 sm:mt-0">
                          @if (session('success'))
-                            <div class="text-sm text-green-600 mr-4 self-center">
+                            <div class="text-sm text-green-600 mr-4 self-center whitespace-nowrap">
                                 {{ session('success') }}
                             </div>
                         @endif
@@ -75,6 +101,7 @@
                 </div>
             </div>
 
+            {{-- Bagian Daftar Tugas --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse ($tasks as $task)
                     {{-- Setiap kartu tugas memiliki border kiri berwarna sesuai prioritas --}}
@@ -115,21 +142,27 @@
                         </div>
 
                         {{-- Tombol Aksi di Footer Kartu --}}
-                        <div class="bg-gray-50 px-5 py-3 flex justify-end items-center space-x-3"> {{-- Tambah items-center di sini --}}
-    <a href="{{ route('tasks.edit', $task->id) }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
-    <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="inline-flex"> {{-- Tambah inline-flex di form --}}
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="text-sm text-red-600 hover:text-red-900 font-semibold" onclick="return confirm('Anda yakin ingin menghapus tugas ini?')">Hapus</button>
-    </form>
-</div>
+                        <div class="bg-gray-50 px-5 py-3 flex justify-end items-center space-x-3">
+                            <a href="{{ route('tasks.edit', $task->id) }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
+                            <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="inline-flex">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-sm text-red-600 hover:text-red-900 font-semibold" onclick="return confirm('Anda yakin ingin menghapus tugas ini?')">Hapus</button>
+                            </form>
+                        </div>
                     </div>
                 @empty
-                    {{-- ... Tampilan Tugas Kosong ... --}}
+                    {{-- Tampilan Tugas Kosong --}}
                     <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-lg shadow-md">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada tugas</h3>
                         <p class="mt-1 text-sm text-gray-500">Selamat, kamu belum punya tugas! Saatnya bersantai 🌴 atau tambah tugas baru.</p>
+                        <div class="mt-6">
+                            <a href="{{ route('tasks.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" /></svg>
+                                Tambah Tugas Baru
+                            </a>
+                        </div>
                     </div>
                 @endforelse
             </div>

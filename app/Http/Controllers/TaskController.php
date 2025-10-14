@@ -8,20 +8,21 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use App\Notifications\TaskCreated;
+use App\Notifications\TaskUpdated;
+use Illuminate\Database\Eloquent\Collection;
 
 class TaskController extends Controller
 {
-    /**
-     * Menampilkan dashboard dengan statistik dan daftar tugas.
-     */
     public function index(Request $request)
     {
         $user = Auth::user();
-        
         $tasksQuery = $user->tasks();
 
-        if ($request->has('status') && in_array($request->status, ['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])) {
+        if ($request->filled('status')) {
             $tasksQuery->where('status', $request->status);
+        }
+        if ($request->filled('prioritas')) {
+            $tasksQuery->where('prioritas', $request->prioritas);
         }
 
         if ($request->get('sort') == 'priority_desc') {
@@ -31,7 +32,6 @@ class TaskController extends Controller
         }
         
         $tasks = $tasksQuery->get();
-
         $allTasks = $user->tasks()->get();
         $totalTugas = $allTasks->count();
         $tugasSelesai = $allTasks->where('status', 'Selesai')->count();
@@ -49,121 +49,86 @@ class TaskController extends Controller
         ));
     }
 
-    /**
-     * Menampilkan form untuk menambah tugas baru.
-     */
     public function create()
     {
         return view('tasks.create');
     }
 
-    /**
-     * Menyimpan tugas baru ke database dan mengirim notifikasi.
-     */
     public function store(Request $request)
     {
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
             'mata_kuliah' => 'required|string|max:255',
-            'deadline' => 'required|date',
+            'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
         ]);
-
         $task = Auth::user()->tasks()->create($request->all());
         Auth::user()->notify(new TaskCreated($task));
-
         return redirect()->route('dashboard')->with('success', 'Tugas berhasil ditambahkan!');
     }
 
-    /**
-     * Menampilkan halaman detail satu tugas.
-     */
     public function show(Task $task)
-    {
-        // Pastikan user hanya bisa melihat tugas miliknya
-        if (Auth::id() !== $task->user_id) {
-            abort(403);
-        }
-
-        return view('tasks.show', compact('task'));
+{
+    if (Auth::id() !== $task->user_id) {
+        abort(403);
     }
 
-    /**
-     * Menampilkan form untuk mengedit tugas.
-     */
+    // Memuat sub-tugas yang terhubung dengan tugas ini
+    $task->load('subTasks');
+
+    return view('tasks.show', compact('task'));
+}
+
     public function edit(Task $task)
     {
-        if (Auth::id() !== $task->user_id) {
+        if (Auth::id() !== $task->user->id) {
             abort(403, 'Akses Ditolak');
         }
-        
         return view('tasks.edit', compact('task'));
     }
 
-    /**
-     * Memperbarui tugas yang ada di database.
-     */
     public function update(Request $request, Task $task)
     {
-        if (Auth::id() !== $task->user_id) {
+        if (Auth::id() !== $task->user->id) {
             abort(403, 'Akses Ditolak');
         }
-
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
             'mata_kuliah' => 'required|string|max:255',
-            'deadline' => 'required|date_format:Y-m-d\TH:i',
+            'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
         ]);
-
         $task->update($request->all());
-
+        Auth::user()->notify(new TaskUpdated($task));
         return redirect()->route('dashboard')->with('success', 'Tugas berhasil diperbarui!');
     }
 
-    /**
-     * Menghapus tugas dari database.
-     */
     public function destroy(Task $task)
     {
         if (Auth::id() !== $task->user_id) {
             abort(403, 'Akses Ditolak');
         }
-
         $task->delete();
-
-        return redirect()->route('dashboard')->with('success', 'Tugas berhasil dihapus!');
+        return redirect()->route('dashboard')->with('success', 'Tugas dipindahkan ke tong sampah!');
     }
     
-    /**
-     * Memperbarui status tugas langsung dari dashboard.
-     */
     public function updateStatus(Request $request, Task $task)
     {
         if (Auth::id() !== $task->user_id) {
             abort(403, 'Akses Ditolak');
         }
-
-        $request->validate([
-            'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
-        ]);
-        
+        $request->validate(['status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])]]);
         $task->update(['status' => $request->status]);
-
         return redirect()->route('dashboard')->with('success', 'Status tugas berhasil diperbarui!');
     }
 
-    /**
-     * Mengambil data tugas untuk ditampilkan di kalender.
-     */
     public function tasksForCalendar(Request $request)
     {
         $tasks = Auth::user()->tasks()->get();
         $events = [];
-
         foreach ($tasks as $task) {
             $backgroundColor = '';
             switch ($task->prioritas) {
@@ -171,9 +136,7 @@ class TaskController extends Controller
                 case 'Sedang': $backgroundColor = '#F59E0B'; break;
                 case 'Rendah': $backgroundColor = '#10B981'; break;
             }
-
             $endDate = Carbon::parse($task->deadline)->addDay()->format('Y-m-d');
-
             $events[] = [
                 'id' => $task->id,
                 'title' => $task->nama_tugas,
@@ -182,7 +145,7 @@ class TaskController extends Controller
                 'allDay' => true,
                 'backgroundColor' => $backgroundColor,
                 'borderColor' => $backgroundColor,
-                'url' => route('tasks.show', $task->id), // Diarahkan ke show
+                'url' => route('tasks.show', $task->id),
                 'extendedProps' => [
                     'mata_kuliah' => $task->mata_kuliah,
                     'prioritas' => $task->prioritas,
@@ -190,7 +153,26 @@ class TaskController extends Controller
                 ]
             ];
         }
-
         return response()->json($events);
+    }
+
+    public function trash()
+    {
+        $trashedTasks = Auth::user()->tasks()->onlyTrashed()->orderBy('deleted_at', 'desc')->get();
+        return view('tasks.trash', compact('trashedTasks'));
+    }
+
+    public function restore($id)
+    {
+        $task = Auth::user()->tasks()->onlyTrashed()->findOrFail($id);
+        $task->restore();
+        return redirect()->route('tasks.trash')->with('success', 'Tugas berhasil dipulihkan!');
+    }
+
+    public function forceDelete($id)
+    {
+        $task = Auth::user()->tasks()->onlyTrashed()->findOrFail($id);
+        $task->forceDelete();
+        return redirect()->route('tasks.trash')->with('success', 'Tugas berhasil dihapus permanen!');
     }
 }
