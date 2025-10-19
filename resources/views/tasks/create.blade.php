@@ -22,14 +22,29 @@
 
                         <div class="mb-4">
                             <x-input-label for="mata_kuliah" :value="__('Mata Kuliah')" />
-                            <x-text-input id="mata_kuliah" class="block mt-1 w-full" type="text" name="mata_kuliah" :value="old('mata_kuliah')" required />
-                            <x-input-error :messages="$errors->get('mata_kuliah')" class="mt-2" />
+                            
+                            {{-- 💡 DROPDOWN MATA KULIAH DENGAN DATA DARI CONTROLLER --}}
+                            <select id="mata_kuliah" name="mata_kuliah" required 
+                                class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                
+                                <option value="" disabled selected>-- Pilih Mata Kuliah --</option>
+                                
+                                @forelse ($courses as $course)
+                                    <option value="{{ $course->name }}" {{ old('mata_kuliah') == $course->name ? 'selected' : '' }}>
+                                        {{ $course->name }}
+                                    </option>
+                                @empty
+                                    <option value="" disabled>-- Belum ada Mata Kuliah. Silakan Tambah di Menu --</option>
+                                @endforelse
+                            </select>
+                            {{-- 💡 AKHIR DROPDOWN --}}
+
+                            <x-input-error class="mt-2" :messages="$errors->get('mata_kuliah')" />
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
                             <div>
                                 <x-input-label for="deadline" :value="__('Deadline')" />
-                                {{-- Ganti type menjadi "text" --}}
                                 <x-text-input id="deadline-picker" class="block mt-1 w-full" type="text" name="deadline" :value="old('deadline')" required placeholder="Pilih tanggal dan waktu..." />
                                 <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
                             </div>

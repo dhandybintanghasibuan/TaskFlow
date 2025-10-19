@@ -31,7 +31,7 @@ $maxWidth = [
         nextFocusableIndex() { return (this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1) },
         prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
     }"
-    x-on:open-modal.window="if ($event.detail.name === '{{ $name }}') { show = true }"
+    x-on:open-modal.window="if ($event.detail === '{{ $name }}') show = true"
     x-on:close.stop="show = false"
     x-on:keydown.escape.window="show = false"
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"

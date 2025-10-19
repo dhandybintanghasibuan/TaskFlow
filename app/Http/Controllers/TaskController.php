@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Course; // 👈 Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -49,15 +50,16 @@ class TaskController extends Controller
 
     public function create()
     {
-        return view('tasks.create');
+        // 🚀 Mengambil semua mata kuliah pengguna untuk dropdown
+        $courses = Auth::user()->courses()->orderBy('name', 'asc')->get();
+        return view('tasks.create', compact('courses'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
-            'mata_kuliah' => 'required|string|max:255',
-            // --- PERBAIKAN DI SINI ---
+            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(), // 👈 Validasi: harus ada di tabel courses
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
@@ -70,14 +72,16 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         if (Auth::id() !== $task->user_id) { abort(403); }
-        $task->load('subTasks'); // Muat sub-tugas
+        $task->load('subTasks'); 
         return view('tasks.show', compact('task'));
     }
 
     public function edit(Task $task)
     {
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
-        return view('tasks.edit', compact('task'));
+        // 🚀 Mengambil semua mata kuliah pengguna untuk dropdown
+        $courses = Auth::user()->courses()->orderBy('name', 'asc')->get();
+        return view('tasks.edit', compact('task', 'courses'));
     }
 
     public function update(Request $request, Task $task)
@@ -85,8 +89,7 @@ class TaskController extends Controller
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
-            'mata_kuliah' => 'required|string|max:255',
-            // --- PERBAIKAN DI SINI ---
+            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(), // 👈 Validasi: harus ada di tabel courses
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
@@ -112,6 +115,7 @@ class TaskController extends Controller
         return redirect()->route('dashboard')->with('success', 'Status tugas berhasil diperbarui!');
     }
 
+    // ... (Method tasksForCalendar, trash, restore, forceDelete tidak berubah)
     public function tasksForCalendar(Request $request)
     {
         $tasks = Auth::user()->tasks()->get();

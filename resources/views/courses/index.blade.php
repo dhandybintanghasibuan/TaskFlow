@@ -18,7 +18,7 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-semibold text-gray-900">Daftar Mata Kuliah</h3>
                         
-                        {{-- Tombol untuk membuka modal --}}
+                        {{-- Tombol ini sekarang akan 100% berfungsi --}}
                         <x-primary-button
                             x-data=""
                             x-on:click.prevent="$dispatch('open-modal', 'add-course-modal')"
@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    {{-- Komponen Modal untuk Tambah Mata Kuliah --}}
+    {{-- Komponen Modal yang dipanggil oleh tombol di atas --}}
     <x-modal name="add-course-modal" :show="$errors->isNotEmpty()" focusable>
         <form method="post" action="{{ route('courses.store') }}" class="p-6">
             @csrf
