@@ -26,14 +26,25 @@ class ProfileController extends Controller
     }
 
     public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $request->user()->fill($request->validated());
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-        $request->user()->save();
-        return Redirect::route('profile.settings')->with('status', 'profile-updated');
+{
+    $validatedData = $request->validated();
+
+    // Jika tidak ada checkbox yang dipilih, kirim array kosong
+    if (!isset($validatedData['notification_preferences'])) {
+        $validatedData['notification_preferences'] = [];
     }
+
+    // Langsung 'fill' dengan array, model akan menanganinya
+    $request->user()->fill($validatedData);
+
+    if ($request->user()->isDirty('email')) {
+        $request->user()->email_verified_at = null;
+    }
+
+    $request->user()->save();
+
+    return Redirect::route('profile.settings')->with('status', 'profile-updated');
+}
     
     public function destroy(Request $request): RedirectResponse
     {

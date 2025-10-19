@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use App\Notifications\TaskCreated;
 use App\Notifications\TaskUpdated;
-use Illuminate\Database\Eloquent\Collection;
 
 class TaskController extends Controller
 {
@@ -24,7 +23,6 @@ class TaskController extends Controller
         if ($request->filled('prioritas')) {
             $tasksQuery->where('prioritas', $request->prioritas);
         }
-
         if ($request->get('sort') == 'priority_desc') {
             $tasksQuery->orderByRaw("FIELD(prioritas, 'Tinggi', 'Sedang', 'Rendah') ASC");
         } else {
@@ -59,6 +57,7 @@ class TaskController extends Controller
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
             'mata_kuliah' => 'required|string|max:255',
+            // --- PERBAIKAN DI SINI ---
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
@@ -69,33 +68,25 @@ class TaskController extends Controller
     }
 
     public function show(Task $task)
-{
-    if (Auth::id() !== $task->user_id) {
-        abort(403);
+    {
+        if (Auth::id() !== $task->user_id) { abort(403); }
+        $task->load('subTasks'); // Muat sub-tugas
+        return view('tasks.show', compact('task'));
     }
-
-    // Memuat sub-tugas yang terhubung dengan tugas ini
-    $task->load('subTasks');
-
-    return view('tasks.show', compact('task'));
-}
 
     public function edit(Task $task)
     {
-        if (Auth::id() !== $task->user->id) {
-            abort(403, 'Akses Ditolak');
-        }
+        if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         return view('tasks.edit', compact('task'));
     }
 
     public function update(Request $request, Task $task)
     {
-        if (Auth::id() !== $task->user->id) {
-            abort(403, 'Akses Ditolak');
-        }
+        if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
             'mata_kuliah' => 'required|string|max:255',
+            // --- PERBAIKAN DI SINI ---
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
@@ -108,18 +99,14 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        if (Auth::id() !== $task->user_id) {
-            abort(403, 'Akses Ditolak');
-        }
+        if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $task->delete();
         return redirect()->route('dashboard')->with('success', 'Tugas dipindahkan ke tong sampah!');
     }
     
     public function updateStatus(Request $request, Task $task)
     {
-        if (Auth::id() !== $task->user_id) {
-            abort(403, 'Akses Ditolak');
-        }
+        if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $request->validate(['status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])]]);
         $task->update(['status' => $request->status]);
         return redirect()->route('dashboard')->with('success', 'Status tugas berhasil diperbarui!');

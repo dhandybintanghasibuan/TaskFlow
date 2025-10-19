@@ -47,12 +47,16 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Pengingat Deadline
                                 </label>
+                                
+                                {{-- INI BAGIAN YANG DIPERBAIKI --}}
                                 @php
-                                    $prefs = is_string($user->notification_preferences)
-                                        ? json_decode($user->notification_preferences, true)
-                                        : $user->notification_preferences;
+                                    $prefs = $user->notification_preferences;
+                                    if (is_string($prefs)) {
+                                        $prefs = json_decode($prefs, true);
+                                    }
                                     $prefs = $prefs ?? [];
                                 @endphp
+                                
                                 <div class="flex items-center gap-4">
                                     <input type="checkbox" id="reminder_7" name="notification_preferences[]" value="7" @checked(in_array('7', $prefs)) class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                                     <label for="reminder_7" class="text-sm text-gray-900">H-7 (7 hari sebelum deadline)</label>
