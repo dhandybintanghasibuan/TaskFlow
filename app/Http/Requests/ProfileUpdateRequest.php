@@ -13,7 +13,8 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'name' => ['string', 'max:255'],
             'email' => ['email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
-            'telegram_chat_id' => ['nullable', 'string', 'max:255'], // PASTIKAN INI ADA
+            'telegram_chat_id' => ['nullable', 'string', 'max:255'],
+            'notification_preferences' => ['nullable', 'array'],
         ];
     }
 }

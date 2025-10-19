@@ -18,6 +18,7 @@ class Task extends Model
         'nama_tugas',
         'mata_kuliah',
         'deskripsi',
+        'course_id',
         'deadline',
         'status',
         'prioritas', // Tambahkan ini jika Anda menambahkan kolom prioritas

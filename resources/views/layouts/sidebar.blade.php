@@ -28,6 +28,13 @@
                 </li>
             </ul>
 
+                        <li class="my-1">
+                <a href="{{ route('courses.index') }}" class="flex items-center p-2 text-base font-normal text-gray-700 rounded-lg hover:bg-gray-100 group {{ request()->routeIs('courses.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : '' }}">
+                    <svg class="w-6 h-6 text-gray-500 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 18a6 6 0 110-12 6 6 0 010 12z"></path></svg>
+                    <span class="ml-3">Mata Kuliah</span>
+                </a>
+            </li>
+
             <li>
     <a href="{{ route('profile.settings') }}" 
        class="flex items-center p-2 text-base font-medium rounded-lg transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900 group

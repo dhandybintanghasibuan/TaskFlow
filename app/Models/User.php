@@ -12,11 +12,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -25,37 +20,28 @@ class User extends Authenticatable
         'notification_preferences',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'notification_preferences' => 'array', 
+        'notification_preferences' => 'array',
     ];
 
-    /**
-     * Mendefinisikan bahwa seorang User memiliki banyak Task.
-     */
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
     
-    /**
-     * Mendefinisikan rute notifikasi untuk channel Telegram.
-     */
+    // --- TAMBAHKAN RELASI COURSES INI ---
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
+    // ------------------------------------
+
     public function routeNotificationForTelegram()
     {
         return $this->telegram_chat_id;

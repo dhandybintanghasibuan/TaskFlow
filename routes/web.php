@@ -4,59 +4,33 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SplashController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\CourseController;
-use App\Http\Controllers\SubTaskController; // Tambahkan ini
+use App\Http\Controllers\SubTaskController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-// Rute untuk halaman publik (landing page)
 Route::get('/', [SplashController::class, 'index'])->name('splash');
 
-// Semua rute di bawah ini hanya bisa diakses oleh pengguna yang sudah login
 Route::middleware(['auth', 'verified'])->group(function () {
-    
-    // Rute Dashboard & Main Menu
     Route::get('/dashboard', [TaskController::class, 'index'])->name('dashboard');
-    Route::get('/calendar', function () {
-        return view('calendar.index');
-    })->name('calendar.index');
-
-    // Rute Profil & Pengaturan
+    Route::get('/calendar', fn() => view('calendar.index'))->name('calendar.index');
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/settings', [ProfileController::class, 'settings'])->name('profile.settings');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Rute Resource untuk Tugas (CRUD penuh)
     Route::resource('tasks', TaskController::class);
-
-    // Rute Resource untuk Mata Kuliah
     Route::resource('courses', CourseController::class);
     
-    // Rute Khusus untuk Fitur Tambahan
-    // Rute untuk fitur-fitur di dalam halaman tugas
-    Route::prefix('tasks')->name('tasks.')->group(function () {
-        // Soft Deletes (Tong Sampah)
-        Route::get('/trash', [TaskController::class, 'trash'])->name('trash');
-        Route::post('/trash/{id}/restore', [TaskController::class, 'restore'])->name('restore');
-        Route::delete('/trash/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('forceDelete');
-        
-        // Update Status Langsung dari Dashboard
-        Route::patch('/{task}/status', [TaskController::class, 'updateStatus'])->name('updateStatus');
-    });
+    Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
 
-    // Rute untuk Sub-tugas
-    Route::prefix('subtasks')->name('subtasks.')->group(function () {
-        Route::post('/{task}', [SubTaskController::class, 'store'])->name('store');
-        Route::patch('/{subTask}', [SubTaskController::class, 'update'])->name('update');
-        Route::delete('/{subTask}', [SubTaskController::class, 'destroy'])->name('destroy');
-    });
+    Route::get('/trash', [TaskController::class, 'trash'])->name('tasks.trash');
+    Route::post('/trash/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
+    Route::delete('/trash/{id}/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete');
 
-    // Rute API untuk Kalender
+    Route::post('/tasks/{task}/subtasks', [SubTaskController::class, 'store'])->name('subtasks.store');
+    Route::patch('/subtasks/{subTask}', [SubTaskController::class, 'update'])->name('subtasks.update');
+    Route::delete('/subtasks/{subTask}', [SubTaskController::class, 'destroy'])->name('subtasks.destroy');
+
     Route::get('/api/tasks-for-calendar', [TaskController::class, 'tasksForCalendar'])->name('api.tasksForCalendar');
 });
 
