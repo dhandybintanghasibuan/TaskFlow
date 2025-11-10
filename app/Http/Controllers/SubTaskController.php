@@ -6,7 +6,7 @@ use App\Models\SubTask;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Notifications\SubTaskNotification; // Tambahkan ini
+use App\Notifications\SubTaskNotification; 
 
 class SubTaskController extends Controller
 {
@@ -18,7 +18,7 @@ class SubTaskController extends Controller
         $request->validate(['deskripsi' => 'required|string|max:255']);
         $subTask = $task->subTasks()->create($request->all());
 
-        // --- PANGGIL NOTIFIKASI BARU UNTUK 'created' ---
+        
         Auth::user()->notify(new SubTaskNotification($subTask, 'created'));
 
         return back()->with('success', 'Checklist berhasil ditambahkan!');
@@ -31,7 +31,7 @@ class SubTaskController extends Controller
         }
         $subTask->update(['is_completed' => $request->boolean('is_completed')]);
 
-        // --- PANGGIL NOTIFIKASI BARU UNTUK 'completed' ---
+     
         if ($subTask->is_completed) {
             Auth::user()->notify(new SubTaskNotification($subTask, 'completed'));
         }
