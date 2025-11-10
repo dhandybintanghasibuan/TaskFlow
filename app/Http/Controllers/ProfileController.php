@@ -29,12 +29,12 @@ class ProfileController extends Controller
 {
     $validatedData = $request->validated();
 
-    // Jika tidak ada checkbox yang dipilih, kirim array kosong
+  
     if (!isset($validatedData['notification_preferences'])) {
         $validatedData['notification_preferences'] = [];
     }
 
-    // Langsung 'fill' dengan array, model akan menanganinya
+    
     $request->user()->fill($validatedData);
 
     if ($request->user()->isDirty('email')) {
