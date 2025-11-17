@@ -43,15 +43,31 @@
 
                         <div class="mb-4">
                             <label for="mata_kuliah" class="block text-sm font-medium text-gray-700">Mata Kuliah</label>
-                            <input id="mata_kuliah" type="text" name="mata_kuliah" value="{{ old('mata_kuliah', $task->mata_kuliah) }}" required 
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            
+                            {{-- 💡 DROPDOWN MATA KULIAH DENGAN DATA DARI CONTROLLER --}}
+                            <select id="mata_kuliah" name="mata_kuliah" required 
+                                class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                
+                                <option value="" disabled>-- Pilih Mata Kuliah --</option>
+                                
+                                @forelse ($courses as $course)
+                                    {{-- Cek apakah mata kuliah ini adalah yang sedang tersimpan --}}
+                                    <option value="{{ $course->name }}" 
+                                        {{ old('mata_kuliah', $task->mata_kuliah) == $course->name ? 'selected' : '' }}>
+                                        {{ $course->name }}
+                                    </option>
+                                @empty
+                                    <option value="{{ $task->mata_kuliah }}" selected>-- {{ $task->mata_kuliah }} (Tidak Ada Daftar Matkul) --</option>
+                                @endforelse
+                            </select>
+                            {{-- 💡 AKHIR DROPDOWN --}}
+                            
                             <x-input-error :messages="$errors->get('mata_kuliah')" class="mt-2" />
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
                             <div>
                                 <label for="deadline-picker" class="block text-sm font-medium text-gray-700">Deadline</label>
-                                {{-- Ganti type menjadi "text" dan sesuaikan value --}}
                                 <input id="deadline-picker" type="text" name="deadline" value="{{ old('deadline', $task->deadline) }}" required 
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <x-input-error :messages="$errors->get('deadline')" class="mt-2" />
@@ -103,6 +119,8 @@
             dateFormat: "Y-m-d H:i",
             time_24hr: true,
             minDate: "today",
+            // Anda mungkin perlu memformat ulang nilai default yang diambil dari database
+            defaultDate: "{{ \Carbon\Carbon::parse($task->deadline)->format('Y-m-d H:i') }}",
         });
     </script>
     @endpush

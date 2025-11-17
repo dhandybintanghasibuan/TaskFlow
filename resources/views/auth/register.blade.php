@@ -9,106 +9,428 @@
     <title>Register - {{ config('app.name', 'TaskFlow') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
     <style>
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        @keyframes pulse-fade {
-            0% { opacity: 0.2; transform: scale(0.9); }
-            50% { opacity: 0.4; transform: scale(1.1); }
-            100% { opacity: 0.2; transform: scale(0.9); }
+
+        body {
+            font-family: 'Figtree', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
-        .animate-rotate {
-            animation: rotate 60s linear infinite;
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
-        .animate-pulse-fade {
-            animation: pulse-fade 8s ease-in-out infinite alternate;
+
+        .register-container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .register-wrapper {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            display: inline-block;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand-tagline {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .register-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .register-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .register-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .register-subtitle a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .register-subtitle a:hover {
+            color: #2563eb;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .form-hint a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-hint a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+
+        .login-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s;
+        }
+
+        .login-link:hover {
+            color: #3b82f6;
+        }
+
+        .btn-register {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #3b82f6;
+        }
+
+        @media (max-width: 640px) {
+            .register-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .register-title {
+                font-size: 1.5rem;
+            }
+
+            .brand-logo {
+                font-size: 2rem;
+            }
+
+            .form-footer {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+
+            .btn-register {
+                width: 100%;
+            }
+
+            .login-link {
+                text-align: center;
+            }
         }
     </style>
 </head>
 
-<body class="font-sans text-gray-900 antialiased">
-    <div class="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800 overflow-hidden py-10">
-        
-        <div class="absolute inset-0 z-0 opacity-40">
-            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300 rounded-lg transform -rotate-45 animate-rotate"></div>
-            <div class="absolute bottom-1/4 right-1/4 w-48 h-48 bg-purple-300 rounded-full animate-pulse-fade"></div>
-            <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-green-300 rounded-3xl transform translate-x-1/2 -translate-y-1/2 rotate-12 opacity-30 animate-pulse-fade" style="animation-delay: 2s;"></div>
-        </div>
-
-        <div class="relative z-10 w-full max-w-md p-8 space-y-6 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-100">
-            <div class="text-center">
-                <a href="/" class="inline-block mb-4 text-3xl font-bold">TaskFlow</a>
-                <h2 class="text-2xl font-bold text-gray-900">
-                    Buat Akun Baru
-                </h2>
+<body class="font-sans antialiased">
+    <div id="particles-js"></div>
+    
+    <div class="register-container">
+        <div class="register-wrapper">
+            <div class="brand-header">
+                <a href="/" class="brand-logo">TaskFlow</a>
+                <p class="brand-tagline">Mulai kelola tugas dengan lebih baik</p>
             </div>
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-6">
-                @csrf
+            <div class="register-card">
+                <h2 class="register-title">Buat Akun Baru</h2>
+                <p class="register-subtitle">
+                    Bergabunglah dan tingkatkan produktivitasmu
+                </p>
 
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-                    <div class="mt-1">
-                        <input id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name"
-                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
+                <form method="POST" action="{{ route('register') }}">
+                    @csrf
+
+                    <div class="form-group">
+                        <label for="name" class="form-label">Nama Lengkap</label>
+                        <input 
+                            id="name" 
+                            type="text" 
+                            name="name" 
+                            value="{{ old('name') }}" 
+                            required 
+                            autofocus 
+                            autocomplete="name"
+                            placeholder="Masukkan nama lengkap"
+                            class="form-input"
+                        >
+                        @error('name')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
                     </div>
-                    <x-input-error :messages="$errors->get('name')" class="mt-2" />
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input 
+                            id="email" 
+                            type="email" 
+                            name="email" 
+                            value="{{ old('email') }}" 
+                            required 
+                            autocomplete="username"
+                            placeholder="nama@email.com"
+                            class="form-input"
+                        >
+                        @error('email')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telegram_chat_id" class="form-label">Telegram Chat ID (Opsional)</label>
+                        <input 
+                            id="telegram_chat_id" 
+                            type="text" 
+                            name="telegram_chat_id" 
+                            value="{{ old('telegram_chat_id') }}" 
+                            autocomplete="telegram_chat_id"
+                            placeholder="Masukkan Telegram Chat ID"
+                            class="form-input"
+                        >
+                        <p class="form-hint">
+                            Dapatkan ID Anda dari bot <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> di Telegram untuk notifikasi.
+                        </p>
+                        @error('telegram_chat_id')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input 
+                            id="password" 
+                            type="password" 
+                            name="password" 
+                            required 
+                            autocomplete="new-password"
+                            placeholder="Minimal 8 karakter"
+                            class="form-input"
+                        >
+                        @error('password')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
+                        <input 
+                            id="password_confirmation" 
+                            type="password" 
+                            name="password_confirmation" 
+                            required 
+                            autocomplete="new-password"
+                            placeholder="Ulangi password"
+                            class="form-input"
+                        >
+                        @error('password_confirmation')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-footer">
+                        <a class="login-link" href="{{ route('login') }}">
+                            Sudah punya akun?
+                        </a>
+                        <button type="submit" class="btn-register">
+                            Daftar
+                        </button>
+                    </div>
+                </form>
+
+                <div class="divider">
+                    <span>atau</span>
                 </div>
 
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <div class="mt-1">
-                        <input id="email" type="email" name="email" :value="old('email')" required autocomplete="username"
-                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
-                    </div>
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                </div>
-
-                <div>
-                    <label for="telegram_chat_id" class="block text-sm font-medium text-gray-700">Telegram Chat ID</label>
-                    <div class="mt-1">
-                        <input id="telegram_chat_id" type="text" name="telegram_chat_id" :value="old('telegram_chat_id')" autocomplete="telegram_chat_id"
-                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">Dapatkan ID Anda dari bot <a href="https://t.me/userinfobot" target="_blank" class="text-indigo-600 hover:underline">@userinfobot</a> di Telegram.</p>
-                    <x-input-error :messages="$errors->get('telegram_chat_id')" class="mt-2" />
-                </div>
-                
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <div class="mt-1">
-                        <input id="password" type="password" name="password" required autocomplete="new-password"
-                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
-                    </div>
-                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                </div>
-                
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Konfirmasi Password</label>
-                    <div class="mt-1">
-                        <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm">
-                    </div>
-                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                </div>
-
-                <div class="flex items-center justify-end pt-2">
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md" href="{{ route('login') }}">
-                        Sudah punya akun?
-                    </a>
-                    <button type="submit"
-                            class="ml-4 group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700">
-                        Daftar
-                    </button>
-                </div>
-            </form>
+                <a href="/" class="back-link">← Kembali ke halaman utama</a>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Initialize Particles.js with same config as welcome screen
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: ['#3b82f6', '#8b5cf6', '#10b981'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#3b82f6',
+                    opacity: 0.3,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'right',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: false },
+                    resize: true
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 }
+                }
+            },
+            retina_detect: true
+        });
+    </script>
 </body>
 </html>

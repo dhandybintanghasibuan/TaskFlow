@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
-use App\Models\Course; // 👈 Tambahkan ini
+use App\Models\Course; 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -13,9 +14,13 @@ use App\Notifications\TaskUpdated;
 
 class TaskController extends Controller
 {
+    /**
+     * Menampilkan dashboard dengan statistik dan daftar tugas.
+     */
     public function index(Request $request)
     {
         $user = Auth::user();
+        
         $tasksQuery = $user->tasks();
 
         if ($request->filled('status')) {
@@ -39,18 +44,25 @@ class TaskController extends Controller
                                        ->where('deadline', '<=', Carbon::now()->addDays(3))
                                        ->count();
 
+        // 🚀 BLOK BARU: Cek tugas yang sudah expired
+        $expiredTasks = $user->tasks()
+            ->where('status', '!=', 'Selesai')
+            ->where('deadline', '<', Carbon::now()) // Deadline sudah lewat
+            ->get();
+        // -------------------------------------
+
         return view('dashboard', compact(
             'tasks', 
             'totalTugas', 
             'tugasSelesai', 
             'tugasBelumDikerjakan', 
-            'tugasMendekatiDeadline'
+            'tugasMendekatiDeadline',
+            'expiredTasks' // 👈 Kirim data tugas expired ke view
         ));
     }
 
     public function create()
     {
-        // 🚀 Mengambil semua mata kuliah pengguna untuk dropdown
         $courses = Auth::user()->courses()->orderBy('name', 'asc')->get();
         return view('tasks.create', compact('courses'));
     }
@@ -59,7 +71,7 @@ class TaskController extends Controller
     {
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
-            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(), // 👈 Validasi: harus ada di tabel courses
+            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(),
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'prioritas' => ['required', Rule::in(['Rendah', 'Sedang', 'Tinggi'])],
@@ -79,7 +91,6 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
-        // 🚀 Mengambil semua mata kuliah pengguna untuk dropdown
         $courses = Auth::user()->courses()->orderBy('name', 'asc')->get();
         return view('tasks.edit', compact('task', 'courses'));
     }
@@ -89,7 +100,7 @@ class TaskController extends Controller
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $request->validate([
             'nama_tugas' => 'required|string|max:255',
-            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(), // 👈 Validasi: harus ada di tabel courses
+            'mata_kuliah' => 'required|string|max:255|exists:courses,name,user_id,'.Auth::id(),
             'deadline' => 'required|date_format:Y-m-d H:i|after_or_equal:today',
             'deskripsi' => 'nullable|string',
             'status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])],
@@ -104,18 +115,17 @@ class TaskController extends Controller
     {
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $task->delete();
-        return redirect()->route('dashboard')->with('success', 'Tugas dipindahkan ke tong sampah!');
+        return redirect()->route('dashboard')->with('success', 'Tugas telah dihapus!');
     }
     
     public function updateStatus(Request $request, Task $task)
-    {
+    { 
         if (Auth::id() !== $task->user_id) { abort(403, 'Akses Ditolak'); }
         $request->validate(['status' => ['required', Rule::in(['Belum Dikerjakan', 'Sedang Dikerjakan', 'Selesai'])]]);
         $task->update(['status' => $request->status]);
         return redirect()->route('dashboard')->with('success', 'Status tugas berhasil diperbarui!');
     }
 
-    // ... (Method tasksForCalendar, trash, restore, forceDelete tidak berubah)
     public function tasksForCalendar(Request $request)
     {
         $tasks = Auth::user()->tasks()->get();
